@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>鼠於你的學位</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* Layout: one-screen doodle sketchbook. Header with level name and three crumb circles, a hand-drawn SVG scene, a hint bar at the thumb. Black ink, warm paper, mustard yellow as the only fill. Single theme by choice. */
+:root{
+  --paper:#f7f2e6; --ink:#161616; --yellow:#ecc12f; --soft:#6f6a5c; --white:#fffdf8;
+  --hand:"LXGW WenKai TC","Kaiti TC","STKaiti","DFKai-SB","BiauKai",serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--hand);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:manipulation;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:3px solid var(--ink)}
+.brand{font-weight:700;font-size:19px;letter-spacing:.08em}
+.lvl{font-size:13px;color:var(--soft);margin-top:2px}
+.meter{display:flex;align-items:center;gap:6px;font-size:13px}
+.meter i{width:20px;height:20px;border:3px solid var(--ink);border-radius:50%;display:block;background:var(--white);transition:background .3s,transform .3s}
+.meter i.on{background:var(--yellow);transform:scale(1.12)}
+.meter b{font-weight:700;min-width:1.4em}
+.stage{flex:1;min-height:0;position:relative}
+#scene{width:100%;height:100%;display:block}
+[data-hit]{cursor:pointer}
+.hop{animation:hop .7s ease-out}
+@keyframes hop{30%{transform:translateY(-12px)}60%{transform:translateY(0)}80%{transform:translateY(-4px)}}
+.hud{border-top:3px solid var(--ink);padding-top:10px;display:flex;align-items:center;gap:12px;min-height:58px}
+.hud p{margin:0;flex:1;font-size:15px;line-height:1.45;min-width:0}
+.timer{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.timer.warn{color:var(--ink);background:var(--yellow);border-radius:8px;padding:0 6px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.4}}
+.btn{all:unset;cursor:pointer;border:3px solid var(--ink);border-radius:999px;padding:10px 18px;font-size:16px;font-weight:700;background:var(--white);white-space:nowrap;text-align:center;min-height:22px}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.primary::after{content:" →"}
+.btn:active{transform:translateY(2px)}
+.btn[disabled]{opacity:.3;pointer-events:none}
+.btn:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+.ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(247,242,230,.9);z-index:5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px}
+.sheet{background:var(--white);border:3px solid var(--ink);border-radius:22px;padding:18px;width:100%;max-width:370px;max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.lens{width:100%;aspect-ratio:4/3;border:3px solid var(--ink);border-radius:18px;overflow:hidden;background:var(--paper)}
+.lens svg,.art svg{width:100%;height:100%;display:block}
+.art{width:100%;aspect-ratio:4/3;border-radius:18px;background:var(--paper);overflow:hidden}
+.sheet h2{margin:0;font-size:28px;letter-spacing:.08em;text-wrap:balance}
+.sheet h3{margin:0;font-size:21px}
+.sheet p{margin:0;font-size:15px;line-height:1.7}
+.eyebrow{font-size:13px;letter-spacing:.2em;color:var(--soft)}
+.tag{align-self:flex-start;background:var(--yellow);border:2px solid var(--ink);border-radius:999px;padding:2px 12px;font-size:13px;font-weight:700}
+.note{border:3px solid var(--ink);border-radius:16px;background:var(--yellow);padding:12px 14px;display:flex;flex-direction:column;gap:6px;transform:rotate(-1deg)}
+.note.clean{background:var(--paper)}
+.note-head{font-weight:700;font-size:15px;letter-spacing:.06em}
+.note p{margin:0;font-size:14px;line-height:1.6;padding-left:18px;position:relative}
+.note p::before{content:"";position:absolute;left:2px;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.acts{display:flex;gap:10px}
+.acts .btn{flex:1}
+.toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:7px 14px;border-radius:999px;font-size:14px;max-width:92%;text-align:center;pointer-events:none;transition:opacity .3s;opacity:0;z-index:3}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){.hop,.timer.warn{animation:none}.btn:active{transform:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><div class="brand">鼠於你的學位</div><div class="lvl" id="lvl">準備出門</div></div>
+    <div class="meter" aria-label="屑屑計量"><span>屑屑</span><i></i><i></i><i></i><b id="extra"></b></div>
+  </header>
+  <div class="stage">
+    <svg id="scene" viewBox="0 0 360 460" preserveAspectRatio="xMidYMid meet" aria-label="遊戲場景">
+      <defs>
+        <filter id="wob" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence id="turb" type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="1"/>
+          <feDisplacementMap in="SourceGraphic" scale="1.8"/>
+        </filter>
+      </defs>
+      <g id="world" filter="url(#wob)" stroke="#161616" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></g>
+    </svg>
+    <div class="toast" id="toast"></div>
+  </div>
+  <div class="hud">
+    <p id="hint">點開始，準備出門。</p>
+    <span class="timer" id="timer"></span>
+    <button class="btn primary" id="act" hidden></button>
+  </div>
+</div>
+
+<div class="ov" id="lensOv" hidden>
+  <div class="sheet">
+    <div class="lens" id="lensBox"><svg id="lensSvg" viewBox="0 0 120 90" preserveAspectRatio="xMidYMid slice"><use href="#world"/></svg></div>
+    <div class="art" id="artBox" hidden></div>
+    <h3 id="lensTitle"></h3>
+    <p id="lensText"></p>
+    <div class="acts" id="lensActs"></div>
+  </div>
+</div>
+
+<div class="ov" id="cardOv">
+  <div class="sheet">
+    <div class="art" id="cardArt"></div>
+    <div class="eyebrow" id="cardEye">研究生的一天</div>
+    <h2 id="cardTitle">鼠於你的學位</h2>
+    <div class="note" id="cardNote" hidden><div class="note-head" id="noteHead"></div><div id="noteBody"></div></div>
+    <p id="cardBody"></p>
+    <button class="btn primary" id="cardBtn">開始收包包</button>
+  </div>
+</div>
+
+<script>
+(function(){
+const INK="#161616",Y="#ecc12f",W="#fffdf8",P="#f7f2e6";
+const $=id=>document.getElementById(id);
+const world=$("world");
+function mul(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rnd=mul(Date.now());
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ---------- drawing helpers ---------- */
+const T=(x,y,s,txt,extra="")=>`<text x="${x}" y="${y}" font-size="${s}" stroke="none" fill="${INK}" font-family="LXGW WenKai TC, Kaiti TC, STKaiti, serif" ${extra}>${txt}</text>`;
+/* crumbs: a scatter of uneven black bits, big chunks and fine dust */
+function crumbs(x,y,n=6,s=6,seed=1,k=1){const r=mul(seed*9973+Math.round(x)*31+Math.round(y));let o="";
+  for(let i=0;i<n;i++){const a=r()*6.283,d=Math.sqrt(r())*s,cx=x+Math.cos(a)*d,cy=y+Math.sin(a)*d,big=r()<.3,sz=(big?1.6+r()*1.6:0.5+r()*0.8)*k;
+    if(big){let p="";const m=5+Math.floor(r()*3);for(let j=0;j<m;j++){const t=j/m*6.283,rr=sz*(.6+r()*.6);p+=(j?"L":"M")+(cx+Math.cos(t)*rr).toFixed(1)+" "+(cy+Math.sin(t)*rr).toFixed(1)}
+      o+=`<path d="${p}Z" fill="${INK}" stroke="none"/>`}
+    else o+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${sz.toFixed(2)}" fill="${INK}" stroke="none"/>`}return o}
+function doodles(seed,areas){const r=mul(seed);let o="";
+  areas.forEach(([x,y,w,h,n])=>{for(let i=0;i<n;i++){const px=x+r()*w,py=y+r()*h,k=r();
+    if(k<.35)o+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="1.6" fill="${INK}" stroke="none"/>`;
+    else if(k<.6)o+=`<path d="M${(px-4).toFixed(1)} ${py.toFixed(1)}h8M${px.toFixed(1)} ${(py-4).toFixed(1)}v8" stroke-width="1.8"/>`;
+    else if(k<.85){const a=r()*3.14;o+=`<path d="M${px.toFixed(1)} ${py.toFixed(1)}l${(Math.cos(a)*7).toFixed(1)} ${(Math.sin(a)*7).toFixed(1)}" stroke-width="2"/>`}
+    else o+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${Y}" stroke-width="1.6"/>`}});
+  return o}
+const hitRect=(id,x,y,w,h)=>`<rect data-hit="${id}" x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="none" pointer-events="all"/>`;
+
+/* the mouse: one-line doodle, facing right, origin at its feet */
+function rat(x,y,o={}){
+  const s=o.s||1,c=o.c!=null?o.c:G.crumbs,f=o.flip?-1:1;
+  let g=`<g class="${o.hop?"hop":""}"><g transform="translate(${x} ${y}) scale(${f*s} ${s})">`;
+  g+=`<path d="M-13 -3 C-27 1 -28 -14 -17 -13 C-10 -12 -12 -5 -17 -6" stroke-width="2.2"/>`;
+  g+=`<ellipse cx="-3" cy="-33" rx="5.5" ry="5" fill="${W}" stroke-width="2.2"/><ellipse cx="4.5" cy="-37" rx="4.5" ry="5.5" fill="${W}" stroke-width="2.2"/>`;
+  g+=`<path d="M-13 0 C-20 -16 -10 -31 5 -31 L20 -21 Q13 -19 11 -16 L11 0 Z" fill="${o.fill||W}" stroke-width="2.4"/>`;
+  g+=`<path d="M-8 -3 C-10 -12 -2 -15 1 -8" stroke-width="1.8"/>`;
+  g+=`<circle cx="20" cy="-21" r="1.9" fill="${INK}" stroke="none"/>`;
+  g+=c===0&&!o.awake?`<path d="M6 -24 q2.5 2.5 5 0" stroke-width="1.6"/>`+T(14,-34,8,"z"):`<circle cx="8.5" cy="-24" r="1.5" fill="${INK}" stroke="none"/>`;
+  if(c>=1||o.glasses)g+=`<circle cx="8.5" cy="-24" r="4.2" fill="none" stroke-width="1.5"/><path d="M4.3 -24.5 L0 -26" stroke-width="1.3"/>`;
+  if(c>=2||o.book)g+=`<rect x="7" y="-16" width="11" height="13" rx="1" fill="${Y}" stroke-width="1.8"/><path d="M12.5 -16v13" stroke-width="1.2"/>`;
+  if(c>=3&&!o.cap)g+=`<rect x="-11" y="-25" width="15" height="9" rx="1" fill="${Y}" stroke-width="1.4"/>`+T(-9.5,-18.5,5,"准考證");
+  if(o.cap)g+=`<path d="M-6 -39 l11 -5 l11 5 l-11 5z" fill="${INK}" stroke-width="1.6"/><path d="M16 -39 v8" stroke-width="1.4"/><circle cx="16" cy="-30" r="1.8" fill="${Y}" stroke-width="1.2"/>`;
+  return g+`</g></g>`;
+}
+function rats(list){return list.map((r,i)=>rat(r[0],r[1],{flip:r[2],s:r[3]||1,hop:G.hop===i})).join("")}
+
+/* item art, centred on 0,0 */
+const ART={
+  laptop:()=>`<rect x="-29" y="-20" width="58" height="37" rx="4" fill="${W}"/><rect x="-23" y="-14" width="46" height="18" rx="2" fill="${Y}" stroke-width="2"/><path d="M-21 10h42M-21 13.5h42" stroke-width="1.4"/>`,
+  card:()=>`<rect x="-26" y="-17" width="52" height="34" rx="4" fill="${Y}"/><rect x="-20" y="-10" width="13" height="16" fill="${W}" stroke-width="1.8"/><circle cx="-13.5" cy="-4" r="3" stroke-width="1.4"/>`+T(-3,-3,8,"借書證")+`<path d="M-3 5h20M-3 9.5h13" stroke-width="1.4"/>`,
+  thesis:t=>`<rect x="-19" y="-21" width="40" height="44" fill="${W}" transform="rotate(-6)"/><rect x="-22" y="-23" width="40" height="44" fill="${W}"/>`+T(-17,-11,7.5,"論文初稿")+`<path d="M-17 -2h29M-17 3h29M-17 8h20M-17 13h25" stroke-width="1.3"/>`+(t?`<path d="M14 9 q6 -6 11 2 q-3 -1 -6 1" stroke-width="1.6" fill="${Y}"/>`+crumbs(22,17,5,4,3):""),
+  coat:t=>`<path d="M-28 -16 l12 -7 h32 l12 7 v38 h-56z" fill="${W}"/><path d="M0 -23v45" stroke-width="2"/><path d="M-8 -23 l8 9 l8 -9" stroke-width="1.8"/><rect x="6" y="4" width="16" height="13" stroke-width="1.8" fill="${W}"/>`+(t?`<path d="M8 4 l1.5 -5 2 3 2 -3.5 2 3 2 -3.5 1.5 6" stroke-width="1.4" fill="${Y}"/>`:""),
+  bottle:()=>`<rect x="-9" y="-13" width="18" height="34" rx="6" fill="${Y}"/><rect x="-7" y="-22" width="14" height="9" rx="2" fill="${W}"/><path d="M-9 0h18M-9 8h18" stroke-width="1.4"/>`,
+  cup:t=>`<rect x="-10" y="-12" width="20" height="33" rx="5" fill="${W}"/><rect x="-11" y="-20" width="22" height="8" rx="3" fill="${W}"/><rect x="-7" y="-2" width="14" height="11" stroke-width="1.4" fill="${Y}"/>`+(t?T(-6,4,5.5,"珍奶"):T(-6,5,5.5,"熱水")),
+  pouch:t=>`<rect x="-28" y="-11" width="56" height="22" rx="11" fill="${W}"/><path d="M-20 -11 h40" stroke-width="1.6" stroke-dasharray="2 3"/><circle cx="22" cy="-11" r="2.4" stroke-width="1.4"/>`+(t?`<path d="M-2 -13 l-5 -4 v7z M-2 -13 h5 M3 -13 l5 -4 v7z" stroke-width="1.3" fill="${Y}"/>`:""),
+  ear:()=>`<path d="M-15 6 a15 15 0 0 1 30 0" stroke-width="3"/><rect x="-21" y="2" width="10" height="16" rx="4" fill="${Y}"/><rect x="11" y="2" width="10" height="16" rx="4" fill="${Y}"/>`,
+  note:()=>`<rect x="-20" y="-23" width="40" height="46" rx="3" fill="${W}"/>`+[-14,-7,0,7,14].map(x=>`<circle cx="${x}" cy="-23" r="2" stroke-width="1.4"/>`).join("")+`<path d="M-14 -10h28M-14 -3h28M-14 4h28M-14 11h20" stroke-width="1.3"/>`,
+  charger:()=>`<rect x="-11" y="-10" width="22" height="22" rx="5" fill="${W}"/><path d="M-5 -10v-6M5 -10v-6" stroke-width="2.6"/><path d="M0 12 q4 14 18 8 q10 -4 6 -14" stroke-width="2"/>`
+};
+
+/* ---------- state ---------- */
+let G;
+function newGame(){rnd=mul(Date.now());G={lv:-1,crumbs:0,hop:-1,bag:new Set(),msgs:[],log:[]};meter()}
+function meter(){document.querySelectorAll(".meter i").forEach((e,i)=>e.classList.toggle("on",i<G.crumbs));$("extra").textContent=G.crumbs>3?`+${G.crumbs-3}`:""}
+function addCrumb(reason,quiet){
+  G.crumbs++;G.msgs.push(reason);G.log.push(reason);meter();
+  if(quiet)return;
+  G.hop=Math.floor(rnd()*4);draw();toast("屑屑加一！"+reason);
+  setTimeout(()=>{G.hop=-1;draw()},750);
+}
+let tt;function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2300)}
+function draw(){if(G.lv>=0&&LV[G.lv])world.innerHTML=LV[G.lv].draw()}
+function hint(t){$("hint").textContent=t}
+function act(label,fn,disabled=false){const b=$("act");if(!label){b.hidden=true;return}b.hidden=false;b.textContent=label;b.disabled=disabled;b.onclick=fn}
+
+let ti=null;
+function startTimer(sec,onEnd){stopTimer();G.time=sec;const el=$("timer");el.textContent=sec;el.classList.remove("warn");
+  ti=setInterval(()=>{G.time--;el.textContent=Math.max(0,G.time);if(G.time<=10)el.classList.add("warn");if(G.time<=0){stopTimer();closeLens();onEnd()}},1000)}
+function stopTimer(){clearInterval(ti);ti=null}
+function clearTimer(){stopTimer();$("timer").textContent="";$("timer").classList.remove("warn")}
+
+const svgWrap=(vb,inner)=>`<svg viewBox="${vb}"><g filter="url(#wob)" stroke="${INK}" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;
+function openLens({crop,art,title,text,actions}){
+  if(crop){$("lensBox").hidden=false;$("artBox").hidden=true;$("lensSvg").setAttribute("viewBox",crop.join(" "))}
+  else{$("lensBox").hidden=true;$("artBox").hidden=false;$("artBox").innerHTML=svgWrap("0 0 160 120",art)}
+  $("lensTitle").textContent=title;$("lensText").textContent=text;
+  const a=$("lensActs");a.innerHTML="";
+  actions.forEach(x=>{const b=document.createElement("button");b.className="btn"+(x.primary?" primary":"");b.textContent=x.label;b.onclick=()=>{closeLens();x.fn&&x.fn()};a.appendChild(b)});
+  $("lensOv").hidden=false;
+}
+function closeLens(){$("lensOv").hidden=true}
+function card({eye,title,body,btn,art,fn,note}){
+  $("cardEye").textContent=eye;$("cardTitle").textContent=title;$("cardBody").innerHTML=body;
+  const nb=$("cardNote");if(note){nb.hidden=false;nb.classList.toggle("clean",!note.lines.length);$("noteHead").textContent=note.head;
+    $("noteBody").innerHTML=(note.lines.length?note.lines:[note.empty]).map(t=>`<p>${t}</p>`).join("")}else nb.hidden=true;
+  const a=$("cardArt");if(art){a.hidden=false;a.innerHTML=svgWrap("0 0 320 240",art)}else a.hidden=true;
+  $("cardBtn").textContent=btn;$("cardBtn").onclick=()=>{$("cardOv").hidden=true;fn()};$("cardOv").hidden=false;
+}
+function goto(n){
+  clearTimer();act(null);
+  const note=G.lv>=0?{head:G.msgs.length?`上一關你留下了 ${G.msgs.length} 份屑屑`:"上一關沒有留下屑屑",lines:G.msgs.map(m=>"哎呀，"+m+"。"),empty:"乾乾淨淨，老鼠還在角落打呼。"}:null;
+  G.msgs=[];const L=LV[n];
+  card({eye:`第 ${n+1} 關，共 3 關`,title:L.name,note,body:L.brief,btn:"開始",art:L.cover(),
+    fn:()=>{G.lv=n;$("lvl").textContent=`第 ${n+1} 關 ${L.name}`;L.start();draw()}});
+}
+
+/* ---------- level data ---------- */
+const ITEMS=[
+  {id:"laptop",name:"筆電",look:"每天都離不開的筆電，今天一定要帶。"},
+  {id:"card",name:"借書證",look:"沒有它進不了圖書館。"},
+  {id:"thesis",name:"論文初稿",look:"早上邊吃早餐邊改的那一份。",trap:"論文初稿裡夾著早餐的可頌碎片，你一翻開就掉了滿桌"},
+  {id:"coat",name:"外套",look:"昨天穿的外套，圖書館冷氣很強。",trap:"外套口袋裡那半包餅乾你沒發現，走一步掉一點"},
+  {id:"bottle",name:"水壺",look:"多喝水總是好的。"},
+  {id:"cup",name:"保溫杯",look:"早上出門前裝好的。",trap:"保溫杯裡裝的其實是珍奶，蓋子一開珍珠就滾出來了"},
+  {id:"pouch",name:"筆袋",look:"每天都會用到的筆袋。",trap:"筆袋裡藏著一顆拆開的糖果，糖粉撒得到處都是"},
+  {id:"ear",name:"耳機",look:"閱覽室很安靜，戴不戴都可以。"},
+  {id:"note",name:"筆記本",look:"上次討論的筆記都在裡面。"},
+  {id:"charger",name:"充電器",look:"筆電沒電就完了。"}
+];
+/* zoomed-in detail of each item, drawn for a 160 x 120 lens */
+const ring=`<circle cx="80" cy="60" r="56" fill="none" stroke-width="2" stroke-dasharray="3 6"/>`;
+const DETAIL={
+  laptop:()=>`<g transform="translate(80 58) scale(2)">${ART.laptop()}</g>`+`<path d="M44 92h72" stroke-width="1.6"/>`,
+  card:()=>`<g transform="translate(80 60) scale(2.2)">${ART.card()}</g>`,
+  thesis:()=>`<rect x="38" y="18" width="84" height="88" fill="${W}" transform="rotate(-5 80 62)"/><rect x="34" y="14" width="84" height="88" fill="${W}"/>`+T(42,32,12,"論文初稿")+`<path d="M42 46h66M42 56h66M42 66h50M42 76h60" stroke-width="1.6"/><path d="M96 84 q12 -12 22 2 q-6 -2 -10 2 q-4 -6 -12 -4z" fill="${Y}" stroke-width="2"/><path d="M101 82 q3 -4 2 -8 M108 84 q3 -5 1 -9" stroke-width="1.3"/>`+crumbs(104,98,22,14,31,1.3)+crumbs(70,90,8,10,32),
+  coat:()=>`<g transform="translate(14 6) scale(.83)"><path d="M34 18 l26 -12 h40 l26 12 l22 40 l-14 8 l-12 -18 v74 h-84 v-74 l-12 18 l-14 -8z" fill="${W}"/><path d="M80 6 v116" stroke-width="2.4"/><path d="M62 6 l18 22 l18 -22" fill="${W}" stroke-width="2.2"/><circle cx="74" cy="48" r="2" stroke-width="1.6"/><circle cx="74" cy="70" r="2" stroke-width="1.6"/><path d="M92 72 l2 -12 h22 l2 12" fill="${Y}" stroke-width="2"/>`+T(97,70,7.5,"餅乾")+`<circle cx="112" cy="56" r="7" fill="${W}" stroke-width="1.8"/><circle cx="110" cy="55" r="1.1" fill="${INK}" stroke="none"/><circle cx="114" cy="58" r="1.1" fill="${INK}" stroke="none"/><rect x="88" y="72" width="34" height="30" fill="${W}" stroke-width="2.4"/>`+crumbs(106,80,16,12,41,1.2)+crumbs(110,112,10,10,42)+`</g>`,
+  bottle:()=>`<g transform="translate(80 62) scale(2.3)">${ART.bottle()}</g>`+T(80,66,12,"水",'text-anchor="middle"'),
+  cup:()=>`<rect x="52" y="34" width="56" height="78" rx="12" fill="${W}"/><ellipse cx="80" cy="34" rx="28" ry="8" fill="${W}"/><path d="M90 34 l14 -30" stroke-width="5"/>`+[[66,32],[76,30],[86,33],[72,36],[82,37],[92,31]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.2" fill="${INK}" stroke="none"/>`).join("")+`<rect x="60" y="62" width="40" height="22" fill="${Y}" stroke-width="2"/>`+T(80,77,10,"珍珠奶茶",'text-anchor="middle"')+`<path d="M110 10 q14 4 18 18" stroke-width="2" stroke-dasharray="4 4"/>`+T(118,52,9,"蓋子沒鎖"),
+  pouch:()=>`<path d="M16 50 q64 -22 128 0 v40 q-64 18 -128 0z" fill="${W}"/><path d="M16 50 q64 12 128 0" stroke-width="1.8" stroke-dasharray="3 3"/><path d="M36 54 l40 -26 M50 58 l36 -30" stroke-width="3"/><path d="M96 46 l-10 -8 v16z M96 46 h12 M108 46 l10 -8 v16z" fill="${Y}" stroke-width="2"/>`+crumbs(102,64,26,18,51,1.1),
+  ear:()=>`<g transform="translate(80 62) scale(2.4)">${ART.ear()}</g>`,
+  note:()=>`<g transform="translate(80 60) scale(2)">${ART.note()}</g>`,
+  charger:()=>`<g transform="translate(74 56) scale(2.2)">${ART.charger()}</g>`
+};
+const SLOTS1=[[65,110],[180,110],[295,110],[65,190],[180,190],[295,190],[65,270],[180,270],[295,270],[122,336],[238,336]];
+const bagArt=(x,y)=>`<g transform="translate(${x} ${y})"><path d="M-22 -30 q22 -16 44 0" stroke-width="3"/><rect x="-38" y="-30" width="76" height="58" rx="16" fill="${Y}"/><path d="M-38 -8 q38 12 76 0" /><rect x="-14" y="4" width="28" height="15" rx="5" fill="${W}"/></g>`;
+
+/* reading room: 3 tables, each with one pair of empty seats next to a neighbour */
+const TY=[76,196,316],CX=[58,138,222,302];
+function seatLayout(){
+  const seats=[];const hair=shuffle([0,1,2,3,0,1]);let k=0;
+  TY.forEach((ty,r)=>{const pat=rnd()<.5?"PEEP":"EPPE";
+    [...pat].forEach((ch,c)=>{seats.push({r,c,x:CX[c],y:ty+70,empty:ch==="E"})});});
+  seats.forEach(s=>{if(!s.empty)s.hair=hair[k++%6]});
+  const empties=seats.filter(s=>s.empty);
+  empties.forEach(e=>{const row=seats.filter(s=>s.r===e.r&&!s.empty);e.nb=row.reduce((a,b)=>Math.abs(b.c-e.c)<Math.abs(a.c-e.c)?b:a)});
+  const neighbours=seats.filter(s=>!s.empty);shuffle(neighbours).slice(0,2).forEach(n=>n.snack=true);
+  return seats;
+}
+function person(s,reveal){
+  const {x,y}=s;let o=`<path d="M${x-20} ${y+16} q20 -26 40 0z" fill="${W}"/>`;
+  o+=`<circle cx="${x}" cy="${y-4}" r="12" fill="${W}"/>`;
+  o+=[`<path d="M${x-12} ${y-6} q12 -16 24 0 q-12 -6 -24 0z" fill="${INK}"/>`,
+      `<path d="M${x-12} ${y-4} q12 -20 24 0" stroke-width="2"/><circle cx="${x}" cy="${y-18}" r="5" fill="${INK}" stroke="none"/>`,
+      `<path d="M${x-13} ${y-6} q13 -14 26 0z" fill="${Y}"/><path d="M${x+11} ${y-6} h7" stroke-width="2.6"/>`,
+      `<path d="M${x-12} ${y-4} q12 -18 24 0 v12 M${x-12} ${y-4} v12" stroke-width="2.4"/>`][s.hair];
+  if(reveal&&s.snack)o+=`<path d="M${x+14} ${y-20} l3 -4 3 4 3 -4 3 4 3 -4 v20 h-15z" fill="${Y}" stroke-width="2"/>`+T(x+15,y-6,5.5,"洋芋片")+crumbs(x+22,y+8,10,10,x+y);
+  if(reveal&&!s.snack)o+=`<rect x="${x+10}" y="${y-16}" width="16" height="12" fill="${W}" stroke-width="1.8"/><path d="M${x+18} ${y-16}v12" stroke-width="1.2"/>`;
+  return o;
+}
+function chair(s,sel){
+  return `<rect x="${s.x-19}" y="${s.y-14}" width="38" height="32" rx="9" fill="${sel?Y:W}"/><path d="M${s.x-13} ${s.y-6} h26" stroke-width="2"/>`+(s.empty&&!sel?T(s.x,s.y+10,13,"空",'text-anchor="middle"'):"");
+}
+
+/* bookshelf: only the right call number is clean; any wrong book drops food when opened */
+const RIGHT="494.1|L23";
+function shelfBooks(){
+  const decoys=shuffle(["494.1|L32","494.2|L23","491.4|L23","494.1|L28","449.1|L23","494.7|L23","494.1|I23","494.1|L2","484.1|L23","494.11|L23","494.1|J23","494|L23","494.1|L33"]);
+  return shuffle([{n:RIGHT}].concat(decoys.map(n=>({n}))));
+}
+const bookPos=i=>{const r=Math.floor(i/7),c=i%7;return[28+c*44.5,r?226:86]};
+const FOODS=[
+  {say:"打開書發現夾著半塊餅乾，一翻就碎了一地",art:`<circle cx="80" cy="76" r="14" fill="${Y}"/><circle cx="76" cy="72" r="1.6" fill="${INK}" stroke="none"/><circle cx="85" cy="79" r="1.6" fill="${INK}" stroke="none"/><path d="M70 66 l8 6 l-4 10" stroke-width="2"/>`},
+  {say:"書頁間藏著可頌的酥皮，打開就撒了出來",art:`<path d="M60 82 q-2 -14 10 -18 q6 -6 14 -2 q10 -6 18 2 q8 4 4 18z" fill="${Y}"/><path d="M70 66 q2 8 -2 16 M82 62 q4 10 0 20 M94 66 q2 8 -2 16" stroke-width="1.6"/>`},
+  {say:"前一個人把洋芋片夾在書裡當書籤，碎片掉滿桌",art:`<path d="M64 70 q16 -12 32 0 q-16 14 -32 0z" fill="${Y}"/><path d="M84 84 q10 -8 20 0 q-10 9 -20 0z" fill="${Y}"/>`},
+  {say:"書裡夾著一包沒封好的抹茶粉，一打開就噴了出來",art:`<rect x="66" y="62" width="28" height="22" rx="3" fill="${Y}"/>`+T(80,77,7,"抹茶粉",'text-anchor="middle"')}
+];
+function openBook(food){
+  let o=`<path d="M20 98 q30 -14 60 0 q30 -14 60 0 v-62 q-30 -14 -60 0 q-30 -14 -60 0z" fill="${W}"/><path d="M80 36 v62" stroke-width="2"/><path d="M30 50 h38 M30 60 h38 M30 70 h30 M92 50 h38 M92 60 h38 M92 70 h30" stroke-width="1.4"/>`;
+  if(food)o=o+`<g transform="translate(0 -38)">${food.art}</g>`+crumbs(80,44,30,26,9,1.2)+`<path d="M60 20 l-6 -8 M100 20 l6 -8 M80 14 v-8" stroke-width="2"/>`;
+  else o+=doodles(77,[[10,6,140,20,8]]);
+  return o;
+}
+
+const LV=[
+/* ---------- 1 pack ---------- */
+{name:"收包包",brief:"要出門囉！先把今天要帶的東西放進包包。每樣東西都點開來瞧瞧，有些屑屑藏得很深，不放大根本看不到。筆電和借書證一定要帶，其他的你自己決定。",
+ cover:()=>bagArt(160,150)+`<g transform="translate(78 120) scale(1.3)">${ART.laptop()}</g><g transform="translate(240 112) scale(1.3)">${ART.card()}</g>`+rat(70,214,{s:1.5,c:0})+rat(260,214,{s:1.5,c:0,flip:1})+doodles(11,[[10,10,300,60,12]]),
+ start(){G.l1=shuffle(SLOTS1).slice(0,10);hint("點物品放大看看，筆電和借書證帶到就能出門。");upd1()},
+ draw(){
+  let o=`<rect x="16" y="62" width="328" height="312" rx="16" fill="${W}"/>`+T(24,50,14,"宿舍書桌");
+  ITEMS.forEach((it,i)=>{const [x,y]=G.l1[i],packed=G.bag.has(it.id);
+    o+=`<g transform="translate(${x} ${y})" opacity="${packed?.28:1}">${ART[it.id](false)}${it.trap?crumbs(18,22,5,5,i+7,.7):""}${T(0,40,11,it.name,'text-anchor="middle"')}</g>`;
+    if(packed)o+=`<circle cx="${x+28}" cy="${y-24}" r="11" fill="${Y}"/><path d="M${x+22} ${y-24} l4 5 l8 -10" stroke-width="2.6"/>`;
+    o+=hitRect("i:"+it.id,x-44,y-34,88,80)});
+  o+=bagArt(150,432)+T(198,437,14,`包包裡 ${G.bag.size} 件`);
+  return o+doodles(3,[[200,14,140,30,6]])+rats([[34,446],[330,450,true],[300,48,true],[150,52]]);
+ },
+ hit(h){const id=h.slice(2),it=ITEMS.find(i=>i.id===id),packed=G.bag.has(id);
+  const look=it.look+"仔細看看有沒有屑屑。";
+  openLens({art:DETAIL[id](),title:"放大看看："+it.name,text:packed?"這個已經在包包裡囉。"+look:look,
+   actions:packed?[{label:"拿出來",fn:()=>{G.bag.delete(id);upd1();toast("好，"+it.name+"留在桌上")}},{label:"繼續帶著",primary:1}]
+                 :[{label:"不帶了"},{label:"放進包包",primary:1,fn:()=>{G.bag.add(id);upd1();toast(it.name+"放進包包了")}}]})}
+},
+/* ---------- 2 seat lottery ---------- */
+{name:"找位置",brief:"閱覽室只剩六個空位，每個位子旁邊都坐著人。聽說其中有兩個人偷帶零食，可是大家看起來都一樣認真。坐下去才知道是誰，祝你好運！",
+ cover:()=>`<rect x="40" y="70" width="240" height="40" rx="10" fill="${W}"/>`+person({x:100,y:150,hair:1},false)+`<rect x="160" y="136" width="38" height="32" rx="9" fill="${Y}"/>`+T(179,158,13,"？",'text-anchor="middle"')+person({x:240,y:150,hair:2},false)+rat(60,224,{s:1.4,c:0})+rat(270,224,{s:1.4,c:0,flip:1})+doodles(21,[[10,10,300,50,10]]),
+ start(){G.l2={seats:seatLayout(),pick:null};hint("挑一張寫著空的椅子坐下。")},
+ draw(){
+  let o=T(20,50,14,"二樓閱覽室");
+  TY.forEach(ty=>o+=`<rect x="20" y="${ty}" width="320" height="44" rx="10" fill="${W}"/>`+`<path d="M40 ${ty+22} h12 M300 ${ty+18} h18" stroke-width="2"/>`);
+  const S=G.l2.seats,pk=G.l2.pick,reveal=pk!=null;
+  S.forEach((s,i)=>{o+=chair(s,pk===i);if(!s.empty)o+=person(s,reveal);
+    if(s.empty&&!reveal)o+=hitRect("t:"+i,s.x-30,s.y-24,60,52)});
+  if(reveal){const me=S[pk];o+=`<circle cx="${me.x}" cy="${me.y-4}" r="12" fill="${W}"/><path d="M${me.x-12} ${me.y-6} q12 -10 24 0" stroke-width="2.2"/>`+T(me.x,me.y+34,11,"你",'text-anchor="middle"');
+    if(me.nb.snack)o+=crumbs((me.x+me.nb.x)/2,me.y+6,22,14,7)}
+  return o+doodles(5,[[150,20,190,30,6]])+rats([[34,452],[180,454,true],[330,452,true],[300,58,true]]);
+ },
+ hit(h){if(G.l2.pick!=null)return;const i=+h.slice(2),s=G.l2.seats[i];
+  openLens({crop:[Math.max(0,Math.min(160,s.x-100)),s.y-100,200,150],title:"要坐這裡嗎？",text:"隔壁的同學看起來超專心，不過他包包裡裝什麼，誰知道呢？",
+   actions:[{label:"再想想"},{label:"就坐這",primary:1,fn:()=>{G.l2.pick=i;draw();
+     setTimeout(()=>{if(s.nb.snack)addCrumb("隔壁同學偷偷拆了一包洋芋片，碎片全掉到你桌上");else toast("隔壁同學乖乖看書，你運氣不錯！");
+       setTimeout(()=>goto(2),2400)},500)}}]})}
+},
+/* ---------- 3 find the book ---------- */
+{name:"找書",brief:"今天要找的書是 494.1 L23。架上編號長得很像的書一大堆，看太快拿錯的話，書裡可能會掉出上一個人留下的零食。閉館前只剩 30 秒，快去！",
+ cover:()=>[0,1,2,3,4,5].map(i=>`<rect x="${70+i*30}" y="${60+(i%2)*6}" width="26" height="${100-(i%2)*6}" rx="2" fill="${i%2?Y:W}"/>`).join("")+`<path d="M50 160 h220" stroke-width="3"/>`+rat(60,222,{s:1.4,c:1})+rat(262,222,{s:1.4,c:2,flip:1})+doodles(31,[[10,10,300,40,10]]),
+ start(){G.l3={books:shelfBooks(),phase:"shelf",food:shuffle(FOODS),fi:0};hint("找到 494.1 L23，點書背放大看編號。");
+  startTimer(30,()=>{G.l3.phase="done";addCrumb("閉館音樂一響你就慌了，包包一甩，裡面的屑屑全撒出來");setTimeout(ending,1800)})},
+ draw(){
+  let o=`<rect x="18" y="62" width="324" height="282" rx="10" fill="${W}"/><path d="M18 198 h324 M18 340 h324" stroke-width="4"/>`+T(22,50,14,"書架 C 區 400 類")+T(338,50,13,"要找 494.1 L23",'text-anchor="end"');
+  G.l3.books.forEach((b,i)=>{const [x,y]=bookPos(i),h=106,[a,bb]=b.n.split("|");
+    o+=`<rect x="${x}" y="${y}" width="38" height="${h}" rx="3" fill="${i%3===1?Y:W}" opacity="${b.out?.25:1}"/><path d="M${x+6} ${y+12} h26 M${x+6} ${y+18} h18" stroke-width="1.6"/>`;
+    o+=`<rect x="${x+3}" y="${y+h-32}" width="32" height="26" rx="3" fill="${W}" stroke-width="1.8"/>`+T(x+19,y+h-21,7.5,a,'text-anchor="middle"')+T(x+19,y+h-11,7.5,bb,'text-anchor="middle"');
+    if(b.out)o+=crumbs(x+19,y+h+8,8,10,i);
+    else o+=hitRect("b:"+i,x-2,y-6,42,h+10)});
+  return o+doodles(9,[[20,370,140,40,6]])+rats([[40,446],[120,440],[250,442,true],[322,448,true],[186,404]]);
+ },
+ hit(h){if(G.l3.phase!=="shelf")return;const i=+h.slice(2),b=G.l3.books[i],[x,y]=bookPos(i);
+  openLens({crop:[x+19-60,y+16,120,90],title:"這本的編號是 "+b.n.replace("|"," "),text:"跟要找的 494.1 L23 一樣嗎？看清楚再打開喔。",
+   actions:[{label:"放回去"},{label:"打開這本",primary:1,fn:()=>{
+     if(b.n===RIGHT){G.l3.phase="done";stopTimer();
+       openLens({art:openBook(null),title:"找到了！",text:"就是這本，書頁乾乾淨淨，可以安心借回家。",actions:[{label:"借書回家",primary:1,fn:ending}]});return}
+     const f=G.l3.food[G.l3.fi++%G.l3.food.length];b.out=true;
+     openLens({art:openBook(f),title:"哎呀，拿錯書了！",text:"這本其實是 "+b.n.replace("|"," ")+"。"+f.say+"。",
+       actions:[{label:"趕快放回去再找",primary:1,fn:()=>addCrumb("你看錯編號拿了別本書，"+f.say)}]})}}]})}
+}];
+
+function upd1(){draw();act("出門",finish1,!(G.bag.has("laptop")&&G.bag.has("card")))}
+function finish1(){ITEMS.forEach(it=>{if(it.trap&&G.bag.has(it.id))addCrumb(it.trap,true)});goto(1)}
+
+/* ---------- endings ---------- */
+function winArt(c){
+  let o=`<path d="M70 236 v-150 q0 -46 90 -46 q90 0 90 46 v150" fill="${W}"/>`+T(160,66,13,"圖書館出口",'text-anchor="middle"');
+  o+=`<rect x="146" y="176" width="28" height="56" rx="6" fill="${W}"/><rect x="132" y="112" width="56" height="74" rx="14" fill="${Y}"/><circle cx="160" cy="94" r="18" fill="${W}"/>`;
+  o+=`<path d="M136 78 l24 -10 l24 10 l-24 10z" fill="${INK}"/><path d="M184 78 v14" stroke-width="2"/><circle cx="184" cy="94" r="3" fill="${Y}" stroke-width="1.6"/>`;
+  o+=`<circle cx="154" cy="96" r="1.6" fill="${INK}" stroke="none"/><circle cx="166" cy="96" r="1.6" fill="${INK}" stroke="none"/><path d="M154 103 q6 5 12 0" stroke-width="2"/>`;
+  o+=`<path d="M188 132 l22 -22" stroke-width="3"/><rect x="200" y="96" width="26" height="12" rx="6" fill="${W}" transform="rotate(-45 213 102)"/>`;
+  o+=rat(42,232,{s:1.5,c,awake:1})+rat(98,236,{s:1.2,c,awake:1})+rat(230,236,{s:1.2,c,flip:1,awake:1})+rat(284,232,{s:1.5,c,flip:1,awake:1,book:1});
+  return o+doodles(41,[[10,10,60,60,8],[250,10,60,60,8]]);
+}
+function loseArt(c){
+  let o=`<rect x="96" y="178" width="128" height="56" rx="6" fill="${Y}"/>`+T(160,212,14,"畢業典禮",'text-anchor="middle"');
+  o+=rat(160,178,{s:3.2,c:3,cap:1,glasses:1,awake:1});
+  o+=`<g transform="translate(206 120) rotate(-20)"><rect x="-4" y="-6" width="34" height="12" rx="6" fill="${W}"/><path d="M8 -6 v12" stroke-width="1.6"/></g>`;
+  o+=`<circle cx="44" cy="186" r="13" fill="${W}"/><path d="M28 234 q16 -42 32 0z" fill="${W}"/><path d="M38 190 q6 -4 12 0" stroke-width="1.8"/><circle cx="39" cy="182" r="1.4" fill="${INK}" stroke="none"/><circle cx="49" cy="182" r="1.4" fill="${INK}" stroke="none"/>`+crumbs(44,212,10,10,c)+T(44,166,10,"你",'text-anchor="middle"');
+  o+=rat(270,234,{s:1.2,c:3,flip:1,awake:1})+rat(296,236,{s:1,c:2,flip:1,awake:1});
+  return o+doodles(51,[[10,10,300,70,16]]);
+}
+function ending(){
+  clearTimer();act(null);closeLens();G.lv=3;$("lvl").textContent="結局";
+  const c=G.crumbs,win=c<3;
+  const title=win?["一塵不染的研究生","小心翼翼的研究生","驚險過關的研究生"][c]:["被老鼠超車的碩二生","老鼠的學長姐","老鼠口試的列席委員","老鼠論文致謝名單上的人"][Math.min(c-3,3)];
+  const body=win?(c?`雖然沿路掉了 ${c} 份屑屑，還不夠老鼠考上大學。你順利畢業，老鼠們只能在門口目送你，其中一隻默默闔上了書。`:"一份屑屑都沒留下，老鼠連書都沒得讀。你順利畢業，牠們只好在門口目送你離開。")
+               :`老鼠撿到你掉的 ${c} 份屑屑，讀完參考書、考上大學，一路念到博士。現在坐在你研究室位子上的，是牠。`;
+  hint(win?"恭喜畢業！老鼠在門口目送你。":"糟糕，老鼠戴上博士帽了。");
+  world.innerHTML=`<g transform="translate(20 110)">${win?winArt(c):loseArt(c)}</g>`;
+  card({eye:win?"結局　順利畢業":"結局　被老鼠取代",title,art:win?winArt(c):loseArt(c),
+    note:{head:G.msgs.length?`最後一關又留下 ${G.msgs.length} 份屑屑`:"最後一關沒有留下屑屑",lines:G.msgs.map(m=>"哎呀，"+m+"。"),empty:"找書找得又快又準，漂亮！"},
+    body,btn:"再收一次包包",fn:()=>{newGame();goto(0)}});
+}
+
+/* wobble */
+if(!matchMedia("(prefers-reduced-motion: reduce)").matches){let k=0;setInterval(()=>$("turb").setAttribute("seed",(k++%4)+1),160)}
+
+$("scene").addEventListener("click",e=>{const h=e.target.closest("[data-hit]");if(h&&G.lv>=0&&G.lv<3&&$("cardOv").hidden&&$("lensOv").hidden)LV[G.lv].hit(h.dataset.hit)});
+
+/* boot */
+newGame();
+G.l1=shuffle(SLOTS1).slice(0,10);G.lv=0;draw();G.lv=-1;
+const introArt=`<rect x="196" y="40" width="104" height="58" rx="8" fill="${Y}"/>`+T(248,62,11,"請勿攜帶食物",'text-anchor="middle"')+T(248,80,9,"老鼠正在讀書",'text-anchor="middle"')+`<path d="M248 98 v40" stroke-width="3"/>`+rat(110,206,{s:3,c:2,awake:1})+crumbs(200,196,12,14,2)+doodles(61,[[14,14,160,60,10]]);
+card({eye:"研究生的一天",title:"鼠於你的學位",art:introArt,
+  body:"你聽過圖書館那張告示嗎？請不要把食物帶進來，食物殘渣會引來老鼠，老鼠會在圖書館學習知識，考上大學，然後取代你。<br><br>今天你要去圖書館查資料，一共三關。只要掉滿三份屑屑，老鼠就會考上大學，小心喔！",
+  btn:"開始收包包",fn:()=>goto(0)});
+})();
+</script>
+</body>
+</html>
